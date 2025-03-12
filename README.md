@@ -10,7 +10,7 @@ A simple plugin yet with some cool features.
 
 This plugin can be found on **[Spigot](https://www.spigotmc.org/resources/suicide.93367/)** & **[MC-Market](https://www.mc-market.org/resources/20360/)**.
 
-If support is needed or a suggesting that needs to be implemented, feel free to ask on the **[Discord](https://discord.gg/MfR5mcpVfX)**.
+If support is needed or a suggestion that needs to be implemented, feel free to ask on the **[Discord](https://discord.gg/MfR5mcpVfX)**.
 
 ## About the Plugin
 This plugin adds little tweaks to the /suicide command.
@@ -23,9 +23,10 @@ This plugin adds little tweaks to the /suicide command.
 * Can be Disabled in Desired Worlds
 * Cooldown for the Command
 * Customisable Firework and Harmless upon explosion
+* Command Aliases
 
 ## Permissions
-- suicide.command : Suicide command
+- suicide.command : The use of the suicide command
 - suicide.bypass : Bypass the suicide cooldown
 - suicide.reload : Reload the plugin config
 

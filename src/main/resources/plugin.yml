@@ -1,12 +1,14 @@
 name: Suicide
 version: ${project.version}
-main: me.prism3.suicide.Main
+main: me.prism3.suicide.Suicide
 api-version: 1.13
 authors: [ Prism3 ]
 description: Simple suicide command with some cool features
 commands:
   suicide:
     description: Suicide command
+    aliases:
+      - killme
   suicide reload:
     description: Reload the plugin config
 permissions:

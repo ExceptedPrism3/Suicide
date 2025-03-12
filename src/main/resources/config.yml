@@ -9,15 +9,15 @@
 # feel free to join the support Discord Server!
 #
 # Spigot: Prism3
-# Discord: Prism3#9371 | ID: 403667971089760257
+# Discord: .prism3 | ID: 403667971089760257
 # Discord Server: https://discord.gg/MfR5mcpVfX
 
 
-# Should we disable the message sent to the player when executing the command?
-Message: false
+# Should the message be sent to the player when executing the command?
+Message: true
 
-# Should we disable the Suicide Broadcast message?
-Broadcast: false
+# Should the suicide be broadcast to the server?
+Broadcast: true
 
 # Should we disable the Fireworks upon the player's death?
 # The Type can be one of these [ BALL_LARGE, BALL, STAR, BURST, CREEPER ]
@@ -27,7 +27,7 @@ Broadcast: false
 # Should there be any flickering of the firework
 # The power upon explosion, setting it too high might cause FPS Drop
 Firework:
-  Disable: false
+  Enabled: true
   Type: BALL_LARGE
   Color:
     RED: 0
@@ -42,27 +42,31 @@ Firework:
   Power: 2
 
 # Should we disable death location Coords?
-Coords: false
+Coords: true
 
 # Should we disable the sound when executing the command?
 # Sound that's played upon player's death.
 # List of sounds: https://www.spigotmc.org/wiki/cc-sounds-list/. Use The Sounds that are 1.9 or higher!
 # Volume and Pitch can vary from 0 -> 100.
 Sound:
-  Disable: false
-  SoundPlayed: 'ENTITY_ZOMBIE_HURT'
-  Volume: 50
+  Enabled: true
+  SoundPlayed: 'MOB_ZOMBIE_HURT'
+  Volume: 100
   Pitch: 50
 
 # Should we disable the suicide cooldown?
 # Timer in Second
 Cooldown:
-  Disable: false
+  Enabled: true
   Timer: 15
 
 # Disable the suicide command in desired worlds
 Disabled-Worlds:
   - 'world_name'
+
+# Command aliases
+Aliases:
+  - meow
 
 Messages:
   No-Permission: "&cYou do not have permission to run this command."

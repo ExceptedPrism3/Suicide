@@ -55,3 +55,17 @@ Additions
     [+] 1.20.2 Support
     [+] Fireworks are now customizable
 
+
+<-!------------------------------------------ v1.5 ------------------------------------------!->
+
+Additions
+    [+] 1.21.4 Support
+    [+] Command Aliases
+
+Fixes
+    [!] Firework Fades not working properly from the config settings
+
+Changes
+    [*] Major Code cleanup and enhancements
+    [*] Config values changed to easier understanding
+    [*] Bumped Java Version to 17 which will be the least required version to run this plugin

@@ -1,131 +1,442 @@
 package me.prism3.suicide.utils;
 
-import me.prism3.suicide.Main;
-import me.prism3.suicide.commands.Suicide;
+import me.prism3.suicide.Suicide;
+import me.prism3.suicide.commands.SuicideCommand;
 import me.prism3.suicide.events.EntityDamage;
 import me.prism3.suicide.events.PlayerDeath;
+import org.bukkit.command.PluginCommand;
+import org.bukkit.command.SimpleCommandMap;
 
+import java.lang.reflect.Method;
 import java.util.List;
 
 
+/**
+ * Central configuration manager handling all plugin settings and data.
+ * Responsible for loading, storing, and providing access to configuration values.
+ * Manages dynamic command registration and event setup.
+ *
+ * @author Prism3
+ * @since 1.0
+ */
 public class Data {
 
-    private static final Main main = Main.getInstance();
+    /**
+     * Main plugin instance reference
+     */
+    private final Suicide plugin;
 
-    public static String playedSound;
-    public static String suicideReload;
-    public static String suicideBypass;
-    public static String suicideCommand;
-    public static String suicideMessage;
-    public static String noPermissionMessage;
-    public static String reloadMessage;
-    public static String invalidSyntaxMessage;
-    public static String disabledWorldMessage;
-    public static String coolDownMessage;
-    public static String fireworkType;
+    // String configurations
+    private String suicideReload;
+    private String suicideBypass;
+    private String suicideCommand;
+    private String suicideMessage;
+    private String noPermissionMessage;
+    private String reloadMessage;
+    private String invalidSyntaxMessage;
+    private String disabledWorldMessage;
+    private String coolDownMessage;
+    private String fireworkType;
 
-    public static long coolDownTime;
+    // Numerical configurations
+    private long coolDownTime;
+    private int resourceID;
+    private int soundVolume;
+    private int soundPitch;
+    private int fireworkPower;
+    private int fireworkColorRed;
+    private int fireworkColorGreen;
+    private int fireworkColorBlue;
+    private int fireworkFadeColorRed;
+    private int fireworkFadeColorGreen;
+    private int fireworkFadeColorBlue;
 
-    public static int resourceID;
-    public static int soundVolume;
-    public static int soundPitch;
-    public static int fireworkPower;
-    public static int fireworkColorRed;
-    public static int fireworkColorGreen;
-    public static int fireworkColorBlue;
-    public static int fireworkFadeColorRed;
-    public static int fireworkFadeColorGreen;
-    public static int fireworkFadeColorBlue;
+    // Boolean feature toggles
+    private boolean cooldownEnabled;
+    private boolean broadcastEnabled;
+    private boolean messageEnabled;
+    private boolean fireworkEnabled;
+    private boolean fireworkTrail;
+    private boolean fireworkFlicker;
+    private boolean coordsEnabled;
+    private boolean soundEnabled;
 
+    // List configurations
+    private List<String> disabledWorlds;
+    private List<String> broadcastMessages;
+    private List<String> commandAliases;
 
-    public static boolean isCoolDown;
-    public static boolean isBroadCast;
-    public static boolean isMessage;
-    public static boolean isFirework;
-    public static boolean isFireworkTrail;
-    public static boolean isFireworkFlicker;
-    public static boolean isCoords;
-    public static boolean isSound;
+    /**
+     * Plugin resource ID for update checking
+     */
+    private static final int DEFAULT_RESOURCE_ID = 93367;
 
-    public static List<String> disabledWorlds;
-    public static List<String> broadCastMessages;
-    public static List<String> commandAliases;
+    /**
+     * Default permission nodes
+     */
+    private static final String COMMAND_PERMISSION = "suicide.command";
+    private static final String RELOAD_PERMISSION = "suicide.reload";
+    private static final String BYPASS_PERMISSION = "suicide.bypass";
 
-    public static void initializer() {
-
-        initializeStrings();
-        initializeLongs();
-        initializeIntegers();
-        initializeBooleans();
-        initializeLists();
-        initializePermissions();
-        initializeEvents();
-        initializeCommands();
+    /**
+     * Initializes a new Data manager instance
+     *
+     * @param plugin Main plugin instance
+     */
+    public Data(final Suicide plugin) {
+        this.plugin = plugin;
+        this.load();
     }
 
-    private static void initializeStrings() {
-
-        playedSound = main.getConfig().getString("Sound.SoundPlayed");
-        suicideMessage = main.getConfig().getString("Messages.On-Suicide");
-        noPermissionMessage = main.getConfig().getString("Messages.No-Permission");
-        reloadMessage = main.getConfig().getString("Messages.Reload");
-        invalidSyntaxMessage = main.getConfig().getString("Messages.Invalid-Syntax");
-        disabledWorldMessage = main.getConfig().getString("Messages.Disabled");
-        coolDownMessage = main.getConfig().getString("Messages.On-Cooldown");
-        fireworkType = main.getConfig().getString("Firework.Type").toUpperCase();
+    /**
+     * Loads and refreshes all configuration values from disk
+     * Registers plugin components after loading
+     */
+    public void load() {
+        this.initializeConfigFile();
+        this.loadStringValues();
+        this.loadNumericValues();
+        this.loadBooleanToggles();
+        this.loadListValues();
+        this.registerPluginComponents();
     }
 
-    private static void initializeLongs() {
-        coolDownTime = main.getConfig().getLong("Cooldown.Timer");
+    /**
+     * Ensures configuration file exists with default values
+     */
+    private void initializeConfigFile() {
+        this.plugin.saveDefaultConfig();
     }
 
-    private static void initializeIntegers() {
-
-        resourceID = 93367;
-        soundVolume = main.getConfig().getInt("Sound.Volume");
-        soundPitch = main.getConfig().getInt("Sound.Pitch");
-        fireworkColorRed = main.getConfig().getInt("Firework.Color.RED");
-        fireworkColorGreen = main.getConfig().getInt("Firework.Color.GREEN");
-        fireworkColorBlue = main.getConfig().getInt("Firework.Color.BLUE");
-        fireworkFadeColorRed = main.getConfig().getInt("Firework.Fade.RED");
-        fireworkFadeColorRed = main.getConfig().getInt("Firework.Fade.GREEN");
-        fireworkFadeColorRed = main.getConfig().getInt("Firework.Fade.BLUE");
-        fireworkPower = main.getConfig().getInt("Firework.Power");
+    /**
+     * Loads all string-based configuration values
+     */
+    private void loadStringValues() {
+        this.suicideMessage = this.getConfigStringWithDefault("Messages.On-Suicide");
+        this.noPermissionMessage = this.getConfigStringWithDefault("Messages.No-Permission");
+        this.reloadMessage = this.getConfigStringWithDefault("Messages.Reload");
+        this.invalidSyntaxMessage = this.getConfigStringWithDefault("Messages.Invalid-Syntax");
+        this.disabledWorldMessage = this.getConfigStringWithDefault("Messages.Disabled");
+        this.coolDownMessage = this.getConfigStringWithDefault("Messages.On-Cooldown");
+        this.fireworkType = this.getConfigStringWithDefault("Firework.Type", "BALL_LARGE").toUpperCase();
+        this.suicideCommand = COMMAND_PERMISSION;
+        this.suicideReload = RELOAD_PERMISSION;
+        this.suicideBypass = BYPASS_PERMISSION;
     }
 
-    private static void initializeBooleans() {
-
-        isCoolDown = main.getConfig().getBoolean("Cooldown.Disable");
-        isBroadCast = main.getConfig().getBoolean("Broadcast");
-        isMessage = main.getConfig().getBoolean("Message");
-        isFirework = main.getConfig().getBoolean("Firework.Disable");
-        isFireworkTrail = main.getConfig().getBoolean("Firework.Trail");
-        isFireworkFlicker = main.getConfig().getBoolean("Firework.Flicker");
-        isCoords = main.getConfig().getBoolean("Coords");
-        isSound = main.getConfig().getBoolean("Sound.Disable");
+    /**
+     * Loads all numeric configuration values
+     */
+    private void loadNumericValues() {
+        this.coolDownTime = this.plugin.getConfig().getLong("Cooldown.Timer");
+        this.resourceID = DEFAULT_RESOURCE_ID;
+        this.soundVolume = this.plugin.getConfig().getInt("Sound.Volume");
+        this.soundPitch = this.plugin.getConfig().getInt("Sound.Pitch");
+        this.fireworkColorRed = this.plugin.getConfig().getInt("Firework.Color.RED");
+        this.fireworkColorGreen = this.plugin.getConfig().getInt("Firework.Color.GREEN");
+        this.fireworkColorBlue = this.plugin.getConfig().getInt("Firework.Color.BLUE");
+        this.fireworkFadeColorRed = this.plugin.getConfig().getInt("Firework.Fade.RED");
+        this.fireworkFadeColorGreen = this.plugin.getConfig().getInt("Firework.Fade.GREEN");
+        this.fireworkFadeColorBlue = this.plugin.getConfig().getInt("Firework.Fade.BLUE");
+        this.fireworkPower = this.plugin.getConfig().getInt("Firework.Power");
     }
 
-    private static void initializeLists() {
+    /**
+     * Loads all boolean feature toggles
+     */
+    private void loadBooleanToggles() {
+        this.messageEnabled = this.plugin.getConfig().getBoolean("Message", true);
+        this.broadcastEnabled = this.plugin.getConfig().getBoolean("Broadcast", true);
+        this.fireworkEnabled = this.plugin.getConfig().getBoolean("Firework.Enabled", true);
+        this.coordsEnabled = this.plugin.getConfig().getBoolean("Coords", true);
+        this.soundEnabled = this.plugin.getConfig().getBoolean("Sound.Enabled", true);
+        this.cooldownEnabled = this.plugin.getConfig().getBoolean("Cooldown.Enabled", true);
 
-        disabledWorlds = main.getConfig().getStringList("Disabled-Worlds");
-        broadCastMessages = main.getConfig().getStringList("Messages.Broadcast.Messages");
-        commandAliases = main.getConfig().getStringList("Aliases");
+        this.fireworkTrail = this.plugin.getConfig().getBoolean("Firework.Trail", true);
+        this.fireworkFlicker = this.plugin.getConfig().getBoolean("Firework.Flicker", true);
     }
 
-    private static void initializePermissions() {
-
-        suicideCommand = "suicide.command";
-        suicideReload = "suicide.reload";
-        suicideBypass = "suicide.bypass";
+    /**
+     * Loads all list-based configuration values
+     */
+    private void loadListValues() {
+        this.disabledWorlds = this.plugin.getConfig().getStringList("Disabled-Worlds");
+        this.broadcastMessages = this.plugin.getConfig().getStringList("Messages.Broadcast.Messages");
+        this.commandAliases = this.plugin.getConfig().getStringList("Aliases");
     }
 
-    private static void initializeEvents() {
-
-        main.getServer().getPluginManager().registerEvents(new PlayerDeath(), main);
-        main.getServer().getPluginManager().registerEvents(new EntityDamage(), main);
+    /**
+     * Registers all plugin components including events and commands
+     */
+    private void registerPluginComponents() {
+        this.registerEventListeners();
+        this.registerMainCommand();
     }
 
-    private static void initializeCommands() {
-        main.getCommand("suicide").setExecutor(new Suicide());
+    /**
+     * Registers all event listeners
+     */
+    private void registerEventListeners() {
+        this.plugin.getServer().getPluginManager().registerEvents(new PlayerDeath(), plugin);
+        this.plugin.getServer().getPluginManager().registerEvents(new EntityDamage(), plugin);
     }
+
+    /**
+     * Registers and configures the main command with aliases
+     */
+    private void registerMainCommand() {
+
+        final PluginCommand command = this.plugin.getCommand("suicide");
+
+        if (command == null)
+            return;
+
+        this.configureCommandProperties(command);
+        this.refreshCommandRegistration(command);
+    }
+
+    /**
+     * Configures command properties from loaded values
+     *
+     * @param command The command to configure
+     */
+    private void configureCommandProperties(final PluginCommand command) {
+        command.setAliases(commandAliases);
+        command.setExecutor(new SuicideCommand(this));
+    }
+
+    /**
+     * Refreshes command registration in the server's command map
+     *
+     * @param command The command to refresh
+     */
+    private void refreshCommandRegistration(final PluginCommand command) {
+        try {
+            final SimpleCommandMap commandMap = this.getCommandMap();
+            this.unregisterExistingCommand(command, commandMap);
+            commandMap.register(this.plugin.getName(), command);
+        } catch (final Exception e) {
+            this.plugin.getLogger().warning("Command registration error: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Retrieves the server's command map using reflection
+     */
+    private SimpleCommandMap getCommandMap() throws Exception {
+        final Method getCommandMap = this.plugin.getServer().getClass().getMethod("getCommandMap");
+        return (SimpleCommandMap) getCommandMap.invoke(this.plugin.getServer());
+    }
+
+    /**
+     * Unregisters a command from the command map
+     */
+    private void unregisterExistingCommand(final PluginCommand command, final SimpleCommandMap commandMap) {
+        command.unregister(commandMap);
+    }
+
+    /**
+     * Safely retrieves a string value from config with optional default
+     */
+    private String getConfigStringWithDefault(final String path, final String defaultValue) {
+        return this.plugin.getConfig().getString(path, defaultValue);
+    }
+
+    private String getConfigStringWithDefault(final String path) {
+        return this.plugin.getConfig().getString(path);
+    }
+
+    /**
+     * Retrieves the sound effect played during suicide
+     * @return Name of configured sound effect
+     */
+    public String getPlayedSound() {
+        return this.plugin.getConfig().getString("Sound.Sound", "MOB_ZOMBIE_HURT");
+    }
+
+    /**
+     * Gets the reload subcommand permission node
+     * @return Permission string for reload access
+     */
+    public String getSuicideReload() { return this.suicideReload; }
+
+    /**
+     * Gets the cooldown bypass permission node
+     * @return Permission string for bypassing cooldowns
+     */
+    public String getSuicideBypass() { return this.suicideBypass; }
+
+    /**
+     * Gets the base command permission node
+     * @return Permission string for command access
+     */
+    public String getSuicideCommand() { return this.suicideCommand; }
+
+    /**
+     * Gets the suicide confirmation message
+     * @return Configured suicide completion message
+     */
+    public String getSuicideMessage() { return this.suicideMessage; }
+
+    /**
+     * Gets the no-permission error message
+     * @return Permission denial message template
+     */
+    public String getNoPermissionMessage() { return this.noPermissionMessage; }
+
+    /**
+     * Gets the config reload confirmation
+     * @return Reload success message template
+     */
+    public String getReloadMessage() { return this.reloadMessage; }
+
+    /**
+     * Gets the invalid syntax warning
+     * @return Command syntax error message template
+     */
+    public String getInvalidSyntaxMessage() { return this.invalidSyntaxMessage; }
+
+    /**
+     * Gets disabled world error message
+     * @return World restriction message template
+     */
+    public String getDisabledWorldMessage() { return this.disabledWorldMessage; }
+
+    /**
+     * Gets cooldown active warning
+     * @return Cooldown notification message template
+     */
+    public String getCoolDownMessage() { return this.coolDownMessage; }
+
+    /**
+     * Gets configured firework effect type
+     * @return FireworkType name in uppercase
+     */
+    public String getFireworkType() { return this.fireworkType; }
+
+    /**
+     * Gets cooldown duration in seconds
+     * @return Cooldown length in seconds
+     */
+    public long getCoolDownTime() { return this.coolDownTime; }
+
+    /**
+     * Gets plugin resource ID for updates
+     * @return Spigot resource identifier
+     */
+    public int getResourceID() { return this.resourceID; }
+
+    /**
+     * Gets suicide sound effect volume
+     * @return Sound volume level (0-100)
+     */
+    public int getSoundVolume() { return this.soundVolume; }
+
+    /**
+     * Gets suicide sound effect pitch
+     * @return Sound pitch value (0-2)
+     */
+    public int getSoundPitch() { return this.soundPitch; }
+
+    /**
+     * Gets firework launch power
+     * @return Firework rocket power level
+     */
+    public int getFireworkPower() { return this.fireworkPower; }
+
+    /**
+     * Gets firework primary color red component
+     * @return RGB red value (0-255)
+     */
+    public int getFireworkColorRed() { return this.fireworkColorRed; }
+
+    /**
+     * Gets firework primary color green component
+     * @return RGB green value (0-255)
+     */
+    public int getFireworkColorGreen() { return this.fireworkColorGreen; }
+
+    /**
+     * Gets firework primary color blue component
+     * @return RGB blue value (0-255)
+     */
+    public int getFireworkColorBlue() { return this.fireworkColorBlue; }
+
+    /**
+     * Gets firework fade color red component
+     * @return RGB red value (0-255)
+     */
+    public int getFireworkFadeColorRed() { return this.fireworkFadeColorRed; }
+
+    /**
+     * Gets firework fade color green component
+     * @return RGB green value (0-255)
+     */
+    public int getFireworkFadeColorGreen() { return this.fireworkFadeColorGreen; }
+
+    /**
+     * Gets firework fade color blue component
+     * @return RGB blue value (0-255)
+     */
+    public int getFireworkFadeColorBlue() { return this.fireworkFadeColorBlue; }
+
+    /**
+     * Checks if cooldown system is enabled
+     * @return true if cooldowns are active
+     */
+    public boolean isCooldownEnabled() { return this.cooldownEnabled; }
+
+    /**
+     * Checks if broadcast messages are enabled
+     * @return true if broadcasts are active
+     */
+    public boolean isBroadcastEnabled() { return this.broadcastEnabled; }
+
+    /**
+     * Checks if personal messages are enabled
+     * @return true if player messages are active
+     */
+    public boolean isMessageEnabled() { return this.messageEnabled; }
+
+    /**
+     * Checks if fireworks are enabled
+     * @return true if firework effects are active
+     */
+    public boolean isFireworkEnabled() { return this.fireworkEnabled; }
+
+    /**
+     * Checks if firework trails are enabled
+     * @return true if firework trails are active
+     */
+    public boolean isFireworkTrail() { return this.fireworkTrail; }
+
+    /**
+     * Checks if firework flicker is enabled
+     * @return true if firework flicker effect is active
+     */
+    public boolean isFireworkFlicker() { return this.fireworkFlicker; }
+
+    /**
+     * Checks if coordinate display is enabled
+     * @return true if death coordinates are shown
+     */
+    public boolean isCoordsEnabled() { return this.coordsEnabled; }
+
+    /**
+     * Checks if sound effects are enabled
+     * @return true if suicide sounds are played
+     */
+    public boolean isSoundEnabled() { return this.soundEnabled; }
+
+    /**
+     * Gets list of disabled worlds
+     * @return List of world names where command is disabled
+     */
+    public List<String> getDisabledWorlds() { return this.disabledWorlds; }
+
+    /**
+     * Gets broadcast message templates
+     * @return List of possible broadcast messages
+     */
+    public List<String> getBroadcastMessages() { return this.broadcastMessages; }
 }
