@@ -6,7 +6,7 @@
 
     <groupId>me.prism3</groupId>
     <artifactId>Suicide</artifactId>
-    <version>1.5</version>
+    <version>1.5.1</version>
     <packaging>jar</packaging>
 
     <name>Suicide</name>

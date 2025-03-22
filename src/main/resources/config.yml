@@ -47,10 +47,12 @@ Coords: true
 # Should we disable the sound when executing the command?
 # Sound that's played upon player's death.
 # List of sounds: https://www.spigotmc.org/wiki/cc-sounds-list/. Use The Sounds that are 1.9 or higher!
+# For 1.12- servers use: MOB_ZOMBIE_HURT
+# For 1.13+ servers use: entity.zombie.hurt
 # Volume and Pitch can vary from 0 -> 100.
 Sound:
   Enabled: true
-  SoundPlayed: 'MOB_ZOMBIE_HURT'
+  Sound: 'entity.zombie.hurt'
   Volume: 100
   Pitch: 50
 

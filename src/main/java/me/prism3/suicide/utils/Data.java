@@ -4,11 +4,15 @@ import me.prism3.suicide.Suicide;
 import me.prism3.suicide.commands.SuicideCommand;
 import me.prism3.suicide.events.EntityDamage;
 import me.prism3.suicide.events.PlayerDeath;
+import org.bukkit.command.Command;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.command.SimpleCommandMap;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -230,9 +234,36 @@ public class Data {
 
     /**
      * Unregisters a command from the command map
+     *
+     * @param command The command to unregister
+     * @param commandMap The command map to unregister from
      */
     private void unregisterExistingCommand(final PluginCommand command, final SimpleCommandMap commandMap) {
+        // Unregister the command normally.
         command.unregister(commandMap);
+
+        try {
+            Field knownCommandsField = SimpleCommandMap.class.getDeclaredField("knownCommands");
+            knownCommandsField.setAccessible(true);
+            @SuppressWarnings("unchecked")
+            Map<String, Command> knownCommands = (Map<String, Command>) knownCommandsField.get(commandMap);
+
+            // Copy keys into a list to avoid concurrent modification issues.
+            List<String> keysToRemove = new ArrayList<>();
+            for (Map.Entry<String, Command> entry : knownCommands.entrySet()) {
+                if (entry.getValue() == command && !entry.getKey().equalsIgnoreCase(command.getName())) {
+                    keysToRemove.add(entry.getKey());
+                }
+            }
+
+            // Remove stale aliases by key.
+            for (String key : keysToRemove) {
+                knownCommands.remove(key);
+            }
+        } catch (final Exception e) {
+            plugin.getLogger().severe("Error cleaning up old aliases: " + e.getMessage());
+            plugin.getLogger().severe("If the issue persists, contact the author");
+        }
     }
 
     /**

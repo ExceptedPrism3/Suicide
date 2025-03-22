@@ -69,3 +69,10 @@ Changes
     [*] Major Code cleanup and enhancements
     [*] Config values changed to easier understanding
     [*] Bumped Java Version to 17 which will be the least required version to run this plugin
+
+
+<-!------------------------------------------ v1.5.1 ------------------------------------------!->
+
+Fixes
+    [!] Sounds not working in higher minecraft versions
+    [!] Aliases now are working properly

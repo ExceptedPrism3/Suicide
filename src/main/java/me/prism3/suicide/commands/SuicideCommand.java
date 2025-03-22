@@ -383,29 +383,43 @@ public class SuicideCommand implements CommandExecutor {
      */
     private void playSound(final Player player) {
 
-        if (!this.data.isSoundEnabled()) return;
+        if (!this.data.isSoundEnabled())
+            return;
 
         final String rawSound = this.data.getPlayedSound();
         final boolean isLegacy = Bukkit.getServer().getClass().getPackage().getName().contains("v1_12");
 
-        // Convert to legacy format if needed
-        String soundName = rawSound.toUpperCase().replace("ENTITY_", "MOB_");
+        // Version-specific sound formatting
+        String soundName;
+
         if (isLegacy) {
-            soundName = soundName
+            // Format for 1.12 and below
+            soundName = rawSound.toUpperCase()
+                    .replace("ENTITY_", "MOB_")
                     .replace("ITEM_", "")
                     .replace("BLOCK_", "")
-                    .replace("ENTITY_", "MOB_");
+                    .replace(".", "_");
+        } else {
+            // Format for 1.13+
+            soundName = rawSound.toLowerCase()
+                    .replace("mob.", "entity.")
+                    .replace("_", ".");
         }
 
-        final float volume = this.data.getSoundVolume() / 100f;
-        final float pitch = 0.5f + (this.data.getSoundPitch() / 100f * 1.5f);
+        final float volume = Math.max(0f, Math.min(1f, this.data.getSoundVolume() / 100f));
+        final float pitch = Math.max(0.5f, Math.min(2f, this.data.getSoundPitch() / 50f + 0.5f));
 
         try {
-            // Use string-based sound method
             player.playSound(player.getLocation(), soundName, volume, pitch);
         } catch (final IllegalArgumentException e) {
-            this.plugin.getLogger().severe("Invalid sound '" + rawSound + "'");
-            this.plugin.getLogger().severe("Try " + (isLegacy ? "MOB_ZOMBIE_HURT" : "ENTITY_ZOMBIE_HURT"));
+            this.plugin.getLogger().severe("Invalid sound configuration:");
+            this.plugin.getLogger().severe("Attempted sound: " + rawSound);
+            this.plugin.getLogger().severe("Formatted sound: " + soundName);
+            this.plugin.getLogger().severe("Version detected: " + (isLegacy ? "1.12-" : "1.13+"));
+            this.plugin.getLogger().severe("Valid examples:");
+            this.plugin.getLogger().severe(isLegacy ?
+                    "- MOB_ZOMBIE_HURT" :
+                    "- entity.zombie.hurt");
         }
     }
 
